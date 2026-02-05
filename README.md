@@ -74,8 +74,12 @@ CSS Bunny is an interactive educational game designed to help developers master 
 
 ## Authors
 
-- Development Team
+- Ameen ul Islam
+- T M Razal Jasim
+- Muhammed Sabeeh M J
+- Rohith Krishna K A
 
 ## License
 
 This project is for educational purposes. Feel free to use and adapt it for learning.
+
