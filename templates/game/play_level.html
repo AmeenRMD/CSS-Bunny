@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Level {{ level.level_number }}: {{ level.title }} - CSS Bunny{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-header">
+        <div class="level-info">
+            <h2>Level {{ level.level_number }}: {{ level.title }}</h2>
+            <span class="difficulty-badge difficulty-{{ level.difficulty }}">{{ level.difficulty|title }}</span>
+        </div>
+        <div class="game-stats">
+            <span class="stat" id="timer">⏱ 0:00</span>
+            <span class="stat">🎯 Attempts: <span id="attempts">{{ user_progress.attempts }}</span></span>
+        </div>
+    </div>
+
+    <div class="game-layout">
+        <!-- Left Panel: Instructions and Editor -->
+        <div class="game-panel editor-panel">
+            <div class="instruction-box">
+                <h3>🎯 Your Mission:</h3>
+                <p>{{ level.instruction }}</p>
+                <p class="hint">💡 CSS Property: <code>{{ level.css_property }}</code></p>
+            </div>
+
+            <div class="editor-container">
+                <div class="editor-header">
+                    <span>CSS Editor</span>
+                    <button id="resetBtn" class="btn btn-sm btn-secondary">Reset</button>
+                </div>
+                <div class="code-editor">
+                    <div class="code-line-numbers" id="lineNumbers">1</div>
+                    <textarea id="cssEditor" class="code-textarea"
+                        placeholder="Type your CSS here...&#10;Example: display: flex;" spellcheck="false"></textarea>
+                </div>
+            </div>
+
+            <div class="editor-actions">
+                <button id="submitBtn" class="btn btn-primary btn-lg">
+                    Submit Solution 🚀
+                </button>
+            </div>
+
+            <div id="feedback" class="feedback-box" style="display: none;"></div>
+        </div>
+
+        <!-- Right Panel: Visual Playground -->
+        <div class="game-panel playground-panel">
+            <div class="playground-header">
+                <h3>Visual Playground</h3>
+                <button id="renderBtn" class="btn btn-sm btn-primary">🔄 Render</button>
+            </div>
+
+            <div id="mainPlayground" class="playground-area">
+                <!-- Burrows (Targets) -->
+                <div id="targetLayer" class="playground-layer layer-targets">
+                    {% for i in "x"|rjust:level.carrot_count %}
+                    <div class="burrow">🕳️</div>
+                    {% endfor %}
+                </div>
+                <!-- Bunnies (Entities) -->
+                <div id="entityLayer" class="playground-layer layer-entities">
+                    {% for i in "x"|rjust:level.bunny_count %}
+                    <div class="bunny">🐰</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const levelNumber = parseInt("{{ level.level_number }}");
+    let startTime = Date.now();
+    let timerInterval;
+
+    // Timer logic
+    function updateTimer() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        document.getElementById('timer').textContent = `⏱ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    timerInterval = setInterval(updateTimer, 1000);
+
+    // Line numbers logic
+    const editor = document.getElementById('cssEditor');
+    const lineNumbers = document.getElementById('lineNumbers');
+    function updateLineNumbers() {
+        const lines = editor.value.split('\n').length;
+        lineNumbers.textContent = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
+    }
+    updateLineNumbers();
+    editor.addEventListener('input', updateLineNumbers);
+    editor.addEventListener('scroll', () => { lineNumbers.scrollTop = editor.scrollTop; });
+
+    // --- PIXI JS IMPLEMENTATION ---
+    const mainPlayground = document.getElementById('mainPlayground');
+    const targetLayer = document.getElementById('targetLayer');
+    const entityLayer = document.getElementById('entityLayer');
+
+    const pixiApp = new PIXI.Application({
+        backgroundAlpha: 0,
+        resizeTo: mainPlayground,
+        antialias: true
+    });
+    mainPlayground.appendChild(pixiApp.view);
+    pixiApp.view.style.position = 'absolute';
+    pixiApp.view.style.top = '0';
+    pixiApp.view.style.left = '0';
+    pixiApp.view.style.pointerEvents = 'none';
+
+    const sprites = { targets: [], entities: [] };
+
+    function createBunnySprite() {
+        const container = new PIXI.Container();
+        const body = new PIXI.Graphics().beginFill(0xFFFFFF).drawEllipse(0, 0, 25, 20).endFill();
+        container.addChild(body);
+
+        const leftEar = new PIXI.Graphics().beginFill(0xFFFFFF).drawEllipse(-10, -25, 6, 15).beginFill(0xFFB3D1).drawEllipse(-10, -25, 3, 10).endFill();
+        container.addChild(leftEar);
+
+        const rightEar = new PIXI.Graphics().beginFill(0xFFFFFF).drawEllipse(10, -25, 6, 15).beginFill(0xFFB3D1).drawEllipse(10, -25, 3, 10).endFill();
+        container.addChild(rightEar);
+
+        const leftEye = new PIXI.Graphics().beginFill(0x2D3436).drawCircle(-8, -2, 2.5).endFill();
+        container.addChild(leftEye);
+
+        const rightEye = new PIXI.Graphics().beginFill(0x2D3436).drawCircle(8, -2, 2.5).endFill();
+        container.addChild(rightEye);
+
+        const nose = new PIXI.Graphics().beginFill(0xFF6B9D).drawPolygon([-3, 2, 3, 2, 0, 5]).endFill();
+        container.addChild(nose);
+
+        let count = 0;
+        pixiApp.ticker.add(() => {
+            count += 0.1;
+            container.scale.set(1 + Math.sin(count) * 0.05);
+        });
+        return container;
+    }
+
+    function createBurrowSprite() {
+        const container = new PIXI.Container();
+        const holeInner = new PIXI.Graphics().beginFill(0x1a1a1a).drawEllipse(0, 0, 35, 22).endFill();
+        container.addChild(holeInner);
+
+        const dirt = new PIXI.Graphics().beginFill(0x8B4513, 0.3).drawEllipse(0, 4, 40, 26).endFill();
+        container.addChildAt(dirt, 0);
+
+        container.alpha = 0.6;
+        return container;
+    }
+
+    function initSprites() {
+        const bunnies = entityLayer.getElementsByClassName('bunny');
+        const burrows = targetLayer.getElementsByClassName('burrow');
+
+        Array.from(bunnies).forEach(el => el.style.opacity = '0');
+        Array.from(burrows).forEach(el => el.style.opacity = '0');
+
+        Array.from(burrows).forEach(el => {
+            const s = createBurrowSprite();
+            pixiApp.stage.addChild(s);
+            sprites.targets.push({ el, sprite: s });
+        });
+
+        Array.from(bunnies).forEach(el => {
+            const s = createBunnySprite();
+            pixiApp.stage.addChild(s);
+            sprites.entities.push({ el, sprite: s });
+        });
+    }
+
+    function syncSprites() {
+        const rect = mainPlayground.getBoundingClientRect();
+
+        sprites.targets.forEach(s => {
+            const elRect = s.el.getBoundingClientRect();
+            s.sprite.x = elRect.left - rect.left + elRect.width / 2;
+            s.sprite.y = elRect.top - rect.top + elRect.height / 2;
+        });
+
+        sprites.entities.forEach(s => {
+            const elRect = s.el.getBoundingClientRect();
+            const targetX = elRect.left - rect.left + elRect.width / 2;
+            const targetY = elRect.top - rect.top + elRect.height / 2;
+
+            s.sprite.x += (targetX - s.sprite.x) * 0.1;
+            s.sprite.y += (targetY - s.sprite.y) * 0.1;
+
+            const distance = Math.abs(targetX - s.sprite.x) + Math.abs(targetY - s.sprite.y);
+            s.sprite.scale.y = distance > 1 ? 0.8 + Math.abs(Math.sin(Date.now() / 100)) * 0.4 : 1;
+        });
+    }
+
+    pixiApp.ticker.add(syncSprites);
+
+    // Initial setup
+    const correctSolution = '{{ level.correct_solution }}'.split('||')[0];
+    targetLayer.style.cssText = correctSolution;
+    initSprites();
+
+    window.addEventListener('resize', () => pixiApp.resize());
+
+    function applyCSS() {
+        entityLayer.style.cssText = editor.value;
+        syncSprites();
+    }
+
+    document.getElementById('renderBtn').addEventListener('click', applyCSS);
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        editor.value = '';
+        updateLineNumbers();
+        entityLayer.style.cssText = '';
+    });
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+        const css = editor.value.trim();
+        const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+
+        // Reset timer for the next attempt
+        startTime = Date.now();
+        updateTimer(); // Update UI immediately
+
+        const feedback = document.getElementById('feedback');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!css) { feedback.style.display = 'block'; feedback.className = 'feedback-box feedback-error'; feedback.textContent = '⚠️ Write CSS first!'; return; }
+
+        applyCSS();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Checking...';
+
+        try {
+            const response = await fetch('{% url "game:validate_solution" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ level_number: levelNumber, css: css, time_taken: timeTaken })
+            });
+
+            const data = await response.json();
+
+            // Update attempts count UI
+            if (data.attempts !== undefined) {
+                document.getElementById('attempts').textContent = data.attempts;
+            }
+
+            feedback.style.display = 'block';
+            feedback.className = data.success ? 'feedback-box feedback-success' : 'feedback-box feedback-error';
+            feedback.textContent = data.message;
+
+            if (data.success) {
+                // Celebration Hop!
+                sprites.entities.forEach(s => {
+                    let jumpTime = 0;
+                    const startY = s.sprite.y;
+                    const hop = () => {
+                        jumpTime += 0.15;
+                        s.sprite.y = startY - Math.abs(Math.sin(jumpTime) * 40);
+                        if (jumpTime < Math.PI) {
+                            requestAnimationFrame(hop);
+                        } else {
+                            s.sprite.y = startY;
+                        }
+                    };
+                    setTimeout(hop, Math.random() * 300);
+                });
+
+                if (!data.already_completed) {
+                    clearInterval(timerInterval);
+                    if (data.next_level) {
+                        const nextBtn = document.createElement('a');
+                        nextBtn.href = `/game/level/${data.next_level}/`;
+                        nextBtn.className = 'btn btn-primary btn-lg';
+                        nextBtn.textContent = 'Next Level →';
+                        nextBtn.style.marginLeft = '10px';
+                        document.querySelector('.editor-actions').appendChild(nextBtn);
+                    }
+                }
+            }
+        } catch (error) { feedback.textContent = '❌ Error: ' + error.message; }
+        finally { submitBtn.disabled = false; submitBtn.textContent = 'Submit Solution 🚀'; }
+    });
+</script>
+{% endblock %}

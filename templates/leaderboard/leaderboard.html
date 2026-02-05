@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard - CSS Bunny{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <h1>🏆 Global Leaderboard</h1>
+        <p>Top CSS Bunny players worldwide</p>
+        {% if current_user_rank %}
+        <div class="user-rank-badge">
+            Your Rank: #{{ current_user_rank }}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="leaderboard-stats">
+        <p>Total Players: {{ total_players }}</p>
+    </div>
+
+    <div class="leaderboard-table-container">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Highest Level</th>
+                    <th>Levels Completed</th>
+                    <th>Total Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in leaderboard %}
+                <tr
+                    class="{% if entry.user == user %}current-user-row{% endif %} {% if entry.rank <= 3 %}top-rank-{{ entry.rank }}{% endif %}">
+                    <td class="rank-cell">
+                        {% if entry.rank == 1 %}
+                        <span class="medal gold">🥇</span>
+                        {% elif entry.rank == 2 %}
+                        <span class="medal silver">🥈</span>
+                        {% elif entry.rank == 3 %}
+                        <span class="medal bronze">🥉</span>
+                        {% else %}
+                        <strong>#{{ entry.rank }}</strong>
+                        {% endif %}
+                    </td>
+                    <td class="player-cell">
+                        <div class="leaderboard-player-info">
+                            <img src="{{ entry.stats.avatar_url }}" alt="Avatar" class="leaderboard-avatar">
+                            <span class="player-name">{{ entry.user.username }}</span>
+                            {% if entry.user == user %}
+                            <span class="badge badge-primary">You</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td><strong>Level {{ entry.stats.highest_level_reached }}</strong></td>
+                    <td>{{ entry.stats.total_levels_completed }}</td>
+                    <td>{{ entry.time_formatted }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        No players yet. Be the first to complete a level!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="leaderboard-actions">
+        <a href="{% url 'game:play' %}" class="btn btn-primary btn-lg">Start Playing</a>
+    </div>
+</div>
+{% endblock %}

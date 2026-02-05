@@ -1,0 +1,50 @@
+﻿{% extends 'base.html' %}
+{% load game_filters %}
+
+{% block title %}Select Level - CSS Bunny{% endblock %}
+
+{% block content %}
+<div class="level-select-container">
+    <div class="level-select-header">
+        <h1>Choose Your Level</h1>
+        <div class="progress-summary">
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: {{ perc }}%"></div>
+            </div>
+            <p class="progress-text">{{ completed_levels }}/{{ total_levels }} levels ({{ perc }}%)</p>
+        </div>
+    </div>
+
+    <div class="levels-grid">
+        {% for level in levels %}
+        {% with user_progress=progress|get_item:level.level_number %}
+        {% with prev_level_num=level.level_number|add:"-1" %}
+        {% with prev_progress=progress|get_item:prev_level_num %}
+        <div
+            class="level-card {% if user_progress.completed %}completed{% elif user.is_staff or level.level_number == 1 or prev_progress.completed %}unlocked{% else %}locked{% endif %}">
+            <div class="level-number">{{ level.level_number }}</div>
+            <h3 class="level-title">{{ level.title }}</h3>
+            <p class="level-property">{{ level.css_property }}</p>
+            <div class="level-difficulty difficulty-{{ level.difficulty }}">{{ level.difficulty|title }}</div>
+
+            {% if user_progress.completed %}
+            <div class="level-stats">
+                <span class="stat">✓ Completed</span>
+                <span class="stat">⏱ {{ user_progress.time_taken|format_time }}</span>
+            </div>
+            <a href="{% url 'game:play_level' level.level_number %}" class="btn btn-secondary btn-sm">Play Again</a>
+            {% elif user.is_staff or level.level_number == 1 or prev_progress.completed %}
+            <a href="{% url 'game:play_level' level.level_number %}" class="btn btn-primary btn-sm">
+                {% if user_progress.attempts > 0 %}Continue{% else %}Start{% endif %}
+            </a>
+            {% else %}
+            <button class="btn btn-disabled btn-sm" disabled>🔒 Locked</button>
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% endwith %}
+        {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

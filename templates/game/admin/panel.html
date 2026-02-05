@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Control Panel - CSS Bunny{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Cockpit ⚙️</h1>
+        <p>Manage the garden, track players, and add new levels.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ stats.total_users }}</div>
+            <div class="stat-label">Active Players</div>
+            <a href="{% url 'game:admin_users' %}" class="btn btn-sm btn-secondary mt-3">Manage Users</a>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🏗️</div>
+            <div class="stat-value">{{ stats.total_levels }}</div>
+            <div class="stat-label">Total Levels</div>
+            <a href="{% url 'game:admin_levels' %}" class="btn btn-sm btn-secondary mt-3">Manage Levels</a>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🎨</div>
+            <div class="stat-value">Architect</div>
+            <div class="stat-label">Design New Challenge</div>
+            <a href="{% url 'game:admin_level_add' %}" class="btn btn-sm btn-primary mt-3">➕ Add Level</a>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-value">{{ stats.completed_levels_avg|floatformat:1 }}</div>
+            <div class="stat-label">Avg. Lvls / Player</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .mt-3 {
+        margin-top: 1rem;
+    }
+
+    .mt-5 {
+        margin-top: 3rem;
+    }
+
+    .admin-actions-grid {
+        display: block;
+    }
+
+    .action-card {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-left: 10px solid var(--accent-color);
+        text-align: center;
+    }
+
+    .action-card h3 {
+        color: var(--primary-color);
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+
+    .action-card p {
+        color: #666;
+        margin-bottom: 30px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+{% endblock %}

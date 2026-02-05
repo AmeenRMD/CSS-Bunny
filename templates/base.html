@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CSS Bunny - Learn CSS Flexbox & Grid{% endblock %}</title>
+    <meta name="description" content="Learn CSS Flexbox and Grid through fun, interactive gameplay with CSS Bunny">
+    <!-- PixiJS -->
+    <script src="https://pixijs.download/v7.3.2/pixi.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% if user.is_staff %}{% url 'game:admin_panel' %}{% else %}{% url 'game:play' %}{% endif %}"
+                class="logo">
+                <span class="bunny-icon">🐰</span>
+                <span class="logo-text">CSS Bunny</span>
+            </a>
+
+            {% if user.is_authenticated %}
+            <div class="nav-links">
+                {% if user.is_staff %}
+                <a href="{% url 'game:admin_users' %}" class="nav-link">Users</a>
+                <a href="{% url 'game:admin_levels' %}" class="nav-link">Levels</a>
+                <a href="{% url 'game:play' %}" class="nav-link">Play Test 🐰</a>
+                <a href="{% url 'game:admin_panel' %}" class="nav-link admin-link">Cockpit ⚙️</a>
+                {% else %}
+                <a href="{% url 'game:play' %}" class="nav-link">Levels</a>
+                <a href="{% url 'leaderboard:leaderboard' %}" class="nav-link">Leaderboard</a>
+                <a href="{% url 'game:dashboard' %}" class="nav-link user-profile-link"
+                    title="Avatar ({{ user.username }})">
+                    {% if user.stats.avatar_url %}
+                    <img src="{{ user.stats.avatar_url }}" alt="Avatar" class="nav-avatar">
+                    {% else %}
+                    <span class="bunny-icon">🐰</span>
+                    {% endif %}
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="btn btn-secondary btn-sm">Logout</a>
+            </div>
+            {% else %}
+            <div class="nav-links">
+                <a href="{% url 'leaderboard:leaderboard' %}" class="nav-link">Leaderboard</a>
+                <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-sm">Login</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="message message-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>Made with 💜 for CSS learners | CSS Bunny &copy; 2026</p>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        // Auto-hide flash messages after 4 seconds
+        document.addEventListener('DOMContentLoaded', function () {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(msg => {
+                setTimeout(() => {
+                    msg.style.transition = 'opacity 1s ease, transform 1s ease';
+                    msg.style.opacity = '0';
+                    msg.style.transform = 'translateX(50px)';
+                    setTimeout(() => msg.remove(), 1000);
+                }, 4000);
+            });
+        });
+    </script>
+</body>
+
+</html>

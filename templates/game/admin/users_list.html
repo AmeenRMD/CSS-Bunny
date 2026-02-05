@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load game_filters %}
+
+{% block title %}Manage Players - CSS Bunny{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header" style="text-align: center; margin-bottom: 2rem;">
+        <h1>Users Management</h1>
+        <p>Monitor player progress and manage community membership.</p>
+    </div>
+
+    <div class="progress-section">
+        <div class="progress-table-container">
+            <table class="progress-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">Avatar</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th style="text-align: center;">Completed</th>
+                        <th style="text-align: center;">Time Spent</th>
+                        <th style="text-align: center;">Joined</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p_user in users %}
+                    <tr>
+                        <td style="text-align: center;">
+                            <img src="{{ p_user.stats.avatar_url }}" alt="Avatar"
+                                style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                        </td>
+                        <td><strong>{{ p_user.username }}</strong></td>
+                        <td>{{ p_user.email }}</td>
+                        <td style="text-align: center;">{{ p_user.stats.total_levels_completed|render_completed|safe }}
+                        </td>
+                        <td style="text-align: center;">{{ p_user.stats.total_time_spent|format_time }}</td>
+                        <td style="text-align: center;">{{ p_user.date_joined|date:"M d, Y" }}</td>
+                        <td style="text-align: center;">
+                            <form action="{% url 'game:admin_user_delete' p_user.pk %}" method="post"
+                                onsubmit="return confirm('Remove this player permanently? There is no recovery.')"
+                                style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-error">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No players found in the garden yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'game:admin_panel' %}" class="btn btn-secondary">← Back to Cockpit</a>
+    </div>
+</div>
+
+<style>
+    .btn-error {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .mt-4 {
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}

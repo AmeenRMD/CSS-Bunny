@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - CSS Bunny{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="min-height: auto; padding: 50px 0;">
+    <div class="auth-card" style="max-width: 800px;">
+        <div class="auth-header">
+            <h1>{{ title }}</h1>
+            <p>Design the core mechanics for this level.</p>
+        </div>
+
+        <form method="post" class="auth-form level-editor-form">
+            {% csrf_token %}
+
+            <div class="form-row">
+                <div class="form-group flex-1">
+                    <label>Level Number</label>
+                    {{ form.level_number }}
+                    {{ form.level_number.errors }}
+                </div>
+                <div class="form-group flex-2">
+                    <label>Level Title</label>
+                    {{ form.title }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group flex-1">
+                    <label>Base CSS Property</label>
+                    {{ form.css_property }}
+                </div>
+                <div class="form-group flex-1">
+                    <label>Difficulty</label>
+                    {{ form.difficulty }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Instructions for Player</label>
+                {{ form.instruction }}
+            </div>
+
+            <div class="form-group">
+                <label>Expected Solution (use || for multiple options)</label>
+                {{ form.correct_solution }}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group flex-1">
+                    <label>Bunny Count</label>
+                    {{ form.bunny_count }}
+                </div>
+                <div class="form-group flex-1">
+                    <label>Burrow Count</label>
+                    {{ form.carrot_count }}
+                </div>
+            </div>
+
+            <div class="form-actions mt-4" style="display: flex; gap: 15px;">
+                <button type="submit" class="btn btn-primary flex-1">💾 Save Level</button>
+                <a href="{% url 'game:admin_levels' %}" class="btn btn-secondary flex-1">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-row {
+        display: flex;
+        gap: 20px;
+    }
+
+    .flex-1 {
+        flex: 1;
+    }
+
+    .flex-2 {
+        flex: 2;
+    }
+
+    .level-editor-form label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .level-editor-form select,
+    .level-editor-form input {
+        width: 100%;
+        height: 45px;
+        padding: 0 15px;
+        border: 2px solid #eee;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .level-editor-form textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #eee;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .level-editor-form select:focus,
+    .level-editor-form textarea:focus,
+    .level-editor-form input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 4px rgba(var(--accent-color-rgb), 0.1);
+        outline: none;
+    }
+</style>
+{% endblock %}

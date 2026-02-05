@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load game_filters %}
+
+{% block title %}Dashboard - CSS Bunny{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header profile-section">
+        <div class="profile-main">
+            <div class="profile-avatar-container">
+                <img src="{{ user_stats.avatar_url }}" alt="Avatar" class="dashboard-avatar">
+            </div>
+            <div class="profile-info">
+                <h1>{{ user.username|capfirst }}</h1>
+                <div class="profile-meta">
+                    <p class="user-email">📧 {{ user.email }}</p>
+                    <p class="user-tagline">{% if user.is_staff %}Official Administrator ⚙️{% else %}Keep learning and
+                        growing your garden! 🐰{% endif %}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if user.is_staff %}
+        <div class="admin-quick-access">
+            <a href="{% url 'game:admin_panel' %}" class="btn btn-primary btn-lg">⚙️ Enter Cockpit</a>
+        </div>
+        {% else %}
+        <div class="avatar-update-card">
+            <h3>Update Avatar</h3>
+            <form method="post" enctype="multipart/form-data" class="avatar-form">
+                {% csrf_token %}
+                <div class="form-group-inline">
+                    <input type="file" name="avatar" class="form-control" accept="image/*" required>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+                <small>Choose a nice picture for your bunny profile!</small>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="stats-grid">
+        {% if not user.is_staff %}
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value">{{ completed_count }}</div>
+            <div class="stat-label">Levels Completed</div>
+        </div>
+        {% endif %}
+
+        <div class="stat-card">
+            <div class="stat-icon">🌍</div>
+            <div class="stat-value">{{ global_rank }}</div>
+            <div class="stat-label">Global Rank</div>
+        </div>
+
+        {% if not user.is_staff %}
+        <div class="stat-card">
+            <div class="stat-icon">⏱</div>
+            <div class="stat-value">{{ time_formatted }}</div>
+            <div class="stat-label">Total Time</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value">{{ progress_percentage }}%</div>
+            <div class="stat-label">Overall Progress</div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not user.is_staff %}
+    <div class="progress-section">
+        <h2>Level Progress</h2>
+        <div class="progress-table-container">
+            <table class="progress-table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Title</th>
+                        <th>Property</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                        <th>Attempts</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in progress %}
+                    <tr class="{% if p.completed %}completed-row{% endif %}">
+                        <td><strong>{{ p.level.level_number }}</strong></td>
+                        <td>{{ p.level.title }}</td>
+                        <td><code>{{ p.level.css_property }}</code></td>
+                        <td>
+                            {% if p.completed %}
+                            <span class="badge badge-success">✓ Completed</span>
+                            {% else %}
+                            <span class="badge badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.time_taken|format_time }}</td>
+                        <td>{{ p.attempts }}</td>
+                        <td>
+                            <a href="{% url 'game:play_level' p.level.level_number %}"
+                                class="btn btn-sm btn-primary btn-level-action">
+                                {% if p.completed %}Play Again{% else %}Play{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="dashboard-actions">
+        <a href="{% url 'game:play' %}" class="btn btn-primary btn-lg">Continue Learning</a>
+        <a href="{% url 'leaderboard:leaderboard' %}" class="btn btn-secondary btn-lg">View Leaderboard</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
