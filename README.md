@@ -27,7 +27,7 @@ CSS Bunny is an interactive educational game designed to help developers master 
 ### Installation
 
 1. **Prepare the environment**
-   Ensure you are in the project root directory.
+   `Ensure you are in the project root directory.`
 
 2. **Install dependencies**
    ```bash
@@ -62,7 +62,7 @@ CSS Bunny is an interactive educational game designed to help developers master 
 1. **Sign up**: Create an account to save progress.
 2. **Select a Level**: Start from Level 1 and unlock subsequent challenges.
 3. **Write CSS**: Use the properties specified in the instructions (e.g., justify-content, align-items).
-4. **Solve**: Position the bunny on the carrot to solve the puzzle.
+4. **Solve**: Position the bunny on the burrow to solve the puzzle.
 
 ## Project Structure
 
@@ -82,4 +82,5 @@ CSS Bunny is an interactive educational game designed to help developers master 
 ## License
 
 This project is for educational purposes. Feel free to use and adapt it for learning.
+
 
